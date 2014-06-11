@@ -1,6 +1,6 @@
 {
   "name": "refresh-config",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "refresh config when config file change",
   "main": "index.js",
   "scripts": {
