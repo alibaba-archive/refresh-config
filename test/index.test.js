@@ -24,16 +24,6 @@ describe('refresh-config', function () {
     config.data.should.eql(JSON.parse(originContent));
   });
 
-  describe('init', function () {
-    it('should emit error when file not eixst', function (done) {
-        var c = Config('not_exsit.json');
-        c.once('error', function (err) {
-          err.should.be.an.Error;
-          done();
-        })
-    });
-  });
-
   describe('onchange', function () {
     after(function () {
       fs.writeFileSync(configPath, originContent);

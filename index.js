@@ -34,14 +34,19 @@ function Config(file) {
   this.stale = {};
   this.removed = [];
 
+  var content;
   try {
-    var content = fs.readFileSync(this.file, 'utf-8');
-    this.parse(content);
+    content = fs.readFileSync(this.file, 'utf-8');
   } catch (err) {
-    debug('init error');
-    setImmediate(this.onerror.bind(this, err));
+    if (err.code !== 'ENOENT') {
+      debug('init error');
+      setImmediate(this.onerror.bind(this, err));
+    }
   }
-  this.emit('change');
+
+  this.parse(content);
+  setImmediate(this.emit.bind(this, 'change'));
+
   this.onerror = this.onerror.bind(this);
 }
 
