@@ -22,8 +22,10 @@ var config = Config('./config.json');
 config.on('error', function (err) {
   console.error(err.stack);
 })
-config.on('change', function (config) {
-  console.log(config);
+config.on('change', function () {
+  console.log(config.data); // the new data object
+  console.log(config.stale); // the stale object
+  console.log(config.removed);  // removed keys
 });
 
 ```

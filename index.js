@@ -31,15 +31,17 @@ function Config(file) {
   this.watch();
 
   this.data = {};
+  this.stale = {};
+  this.removed = [];
+
   try {
     var content = fs.readFileSync(this.file, 'utf-8');
-    this.data = JSON.parse(content);
+    this.parse(content);
   } catch (err) {
     debug('init error');
     setImmediate(this.onerror.bind(this, err));
   }
-  this.emit('change', this.data);
-
+  this.emit('change');
   this.onerror = this.onerror.bind(this);
 }
 
@@ -67,24 +69,27 @@ Config.prototype.onchange = function () {
   var self = this;
 
   fs.readFile(self.file, 'utf-8', function (err, content) {
-    if (err) {
-      if (err.code === 'ENOENT') {
-        debug('config file removed');
-        self.data = {};
-        return self.emit('change', self.data);
-      }
-      return self.emit('error', err);
-    }
+    if (err && err.code !== 'ENOENT') return self.emit('error', err);
+    if (err && err.code === 'ENOENT') debug('config file removed');
+    self.parse(content);
+    self.emit('change');
+  });
+};
 
+Config.prototype.parse = function (content) {
+  var data = {};
+  if (content) {
     try {
-      self.data = JSON.parse(content);
+      data = JSON.parse(content);
     } catch (err) {
       debug('parse json content error');
-      return self.emit('error', err);
+      return this.emit('error', err);
     }
+  }
 
-    self.emit('change', self.data);
-  });
+  this.stale = this.data;
+  this.data = data;
+  this.removed = substract(this.data, this.stale);
 };
 
 Config.prototype.onerror = function(err) {
@@ -95,3 +100,14 @@ Config.prototype.close =
 Config.prototype.destroy = function() {
   this.watcher && this.watcher.close();
 };
+
+function substract(fresh, stale) {
+  var removed = [];
+  for (var key in stale) {
+    if (fresh[key] === undefined) {
+      removed.push(key);
+    }
+  }
+
+  return removed;
+}

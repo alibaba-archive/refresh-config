@@ -42,9 +42,11 @@ describe('refresh-config', function () {
     it('should emit change when file changed', function (done) {
       var changeData = {hello: 'world'};
       fs.writeFileSync(configPath, JSON.stringify( changeData ));
-      config.once('change', function (data) {
-        data.should.eql(changeData);
-        data.should.equal(config.data);
+      var data = config.data;
+      config.once('change', function () {
+        config.data.should.eql(changeData);
+        config.stale.should.equal(data);
+        config.removed.should.eql(Object.keys(data));
         done();
       });
     });
@@ -58,8 +60,9 @@ describe('refresh-config', function () {
     });
 
     it('should remove file fine', function (done) {
-      config.once('change', function (data) {
-        data.should.eql({});
+      config.once('change', function () {
+        config.data.should.eql({});
+        config.removed.should.eql(Object.keys(config.stale));
         done();
       });
       fs.unlinkSync(configPath);
@@ -67,8 +70,8 @@ describe('refresh-config', function () {
 
     it('should readd ok', function (done) {
       fs.writeFileSync(configPath, originContent);
-      config.once('change', function (data) {
-        data.should.eql(JSON.parse(originContent));
+      config.once('change', function () {
+        config.data.should.eql(JSON.parse(originContent));
         done();
       });
     });
@@ -76,9 +79,8 @@ describe('refresh-config', function () {
     it('should change again ok', function (done) {
       var changeData = {hello: 'world'};
       fs.writeFileSync(configPath, JSON.stringify( changeData ));
-      config.once('change', function (data) {
-        data.should.eql(changeData);
-        data.should.equal(config.data);
+      config.once('change', function () {
+        config.data.should.eql(changeData);
         done();
       });
     });
