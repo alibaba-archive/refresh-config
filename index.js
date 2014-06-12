@@ -104,6 +104,7 @@ Config.prototype.onerror = function(err) {
 Config.prototype.close =
 Config.prototype.destroy = function() {
   this.watcher && this.watcher.close();
+  this.watcher = null;
 };
 
 function substract(fresh, stale) {
